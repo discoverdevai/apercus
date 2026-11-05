@@ -10,7 +10,7 @@ const config: Configuration = {
   context: import.meta.dirname,
   target: "node",
   entry: {
-    main: ["@rspack/core/hot/poll?100", "./src/main.ts"]
+    main: process.env.BUILD ? ["./src/main.ts"] : ["@rspack/core/hot/poll?100", "./src/main.ts"]
   },
   devtool: "source-map",
   externals: [

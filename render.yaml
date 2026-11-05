@@ -1,0 +1,65 @@
+# Render Blueprint — https://render.com/docs/blueprint-spec
+# MongoDB is hosted on MongoDB Atlas (Render has no managed Mongo); set DATABASE_URL in the Dashboard.
+services:
+  - type: web
+    name: apercus-api
+    runtime: node
+    plan: free
+    region: frankfurt
+    buildCommand: pnpm install --frozen-lockfile && pnpm turbo run build --filter=@repo/api
+    startCommand: cd apps/api && NODE_ENV=production NEXT_PUBLIC_WEB_URL="${NEXT_PUBLIC_WEB_URL:-https://$WEB_HOST}" node dist/main.js
+    healthCheckPath: /health
+    buildFilter:
+      paths:
+        - apps/api/**
+        - packages/**
+        - pnpm-lock.yaml
+        - render.yaml
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+      - key: ENABLE_EXPERIMENTAL_COREPACK
+        value: "1"
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      # Public hostname of the web app, used for the CORS allowlist
+      - key: WEB_HOST
+        fromService:
+          name: apercus-web
+          type: web
+          envVarKey: RENDER_EXTERNAL_HOSTNAME
+
+  - type: web
+    name: apercus-web
+    runtime: node
+    plan: free
+    region: frankfurt
+    # NEXT_PUBLIC_* vars are inlined at build time; standalone output needs static/public copied in
+    buildCommand: >-
+      pnpm install --frozen-lockfile &&
+      NEXT_PUBLIC_API_URL="${NEXT_PUBLIC_API_URL:-https://$API_HOST}"
+      NEXT_PUBLIC_WEB_URL="${NEXT_PUBLIC_WEB_URL:-https://$RENDER_EXTERNAL_HOSTNAME}"
+      pnpm turbo run build --filter=@repo/web &&
+      cp -r apps/web/.next/static apps/web/.next/standalone/apps/web/.next/static &&
+      cp -r apps/web/public apps/web/.next/standalone/apps/web/public
+    startCommand: HOSTNAME=0.0.0.0 node apps/web/.next/standalone/apps/web/server.js
+    healthCheckPath: /en/login
+    buildFilter:
+      paths:
+        - apps/web/**
+        - packages/**
+        - pnpm-lock.yaml
+        - render.yaml
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+      - key: ENABLE_EXPERIMENTAL_COREPACK
+        value: "1"
+      # Public hostname of the API, baked into the client bundle as NEXT_PUBLIC_API_URL
+      - key: API_HOST
+        fromService:
+          name: apercus-api
+          type: web
+          envVarKey: RENDER_EXTERNAL_HOSTNAME
