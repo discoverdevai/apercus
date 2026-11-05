@@ -227,6 +227,30 @@ pnpm storybook:test        # Run Storybook interaction tests for web UI componen
 pnpm build                 # Production build (including api, web and mobile)
 ```
 
+### BMAD Method Setup (AI Workflow)
+
+The repo ships the shared [BMAD Method](https://github.com/bmad-code-org/BMAD-METHOD) configuration in `_bmad/` (modules: `core`, `bmm`, `cis`). The generated agent skills and your personal settings are **not** committed — each developer installs them locally.
+
+**Requirements:** [uv](https://docs.astral.sh/uv/) (`brew install uv`). BMAD skills run Python scripts through `uv run`, which needs Python 3.11+; uv downloads a suitable Python automatically.
+
+```bash
+# From the repo root: generate the BMAD skills for your AI tool
+npx bmad-method@6.12.4 install --action quick-update --tools claude-code --yes
+
+# The installer rewrites timestamps in committed _bmad files — discard them
+git restore _bmad
+```
+
+- Skills are generated into your tool's folder (`.claude/skills/` for Claude Code, which is gitignored). For other tools, run `npx bmad-method@6.12.4 install --list-tools` and pass their IDs to `--tools`, e.g. `--tools claude-code,cursor`. Don't commit the generated skills folder.
+- To make the agents address you by name, create `_bmad/custom/config.user.toml` (gitignored, never touched by the installer):
+
+  ```toml
+  [core]
+  user_name = "Your Name"
+  ```
+
+- Personal files (`*.user.toml`) are gitignored. Shared settings live in `_bmad/config.toml`; team-wide overrides go in `_bmad/custom/config.toml`.
+
 ---
 
 ## Engineering Decisions
