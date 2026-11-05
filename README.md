@@ -158,6 +158,7 @@ The monorepo shares business logic across platforms while keeping UI and navigat
 - PNPM latest version
 - Docker / OrbStack (for local MongoDB)
 - **For Mobile:** iOS Simulator (Xcode) or Android Emulator (Android Studio), or [Expo Go](https://expo.dev/go) on a physical device
+- **For the BMAD AI workflow:** [uv](https://docs.astral.sh/uv/) (`brew install uv`) — see [BMAD Method Setup](#bmad-method-setup-ai-workflow)
 
 ### Environment Configuration
 
@@ -231,7 +232,7 @@ pnpm build                 # Production build (including api, web and mobile)
 
 The repo ships the shared [BMAD Method](https://github.com/bmad-code-org/BMAD-METHOD) configuration in `_bmad/` (modules: `core`, `bmm`, `cis`). The generated agent skills and your personal settings are **not** committed — each developer installs them locally.
 
-**Requirements:** [uv](https://docs.astral.sh/uv/) (`brew install uv`). BMAD skills run Python scripts through `uv run`, which needs Python 3.11+; uv downloads a suitable Python automatically.
+**Requirements:** [uv](https://docs.astral.sh/uv/) (`brew install uv`). Every BMAD skill loads its config by running Python scripts through `uv run` on activation, so no skill works without it. The scripts need Python 3.11+; uv downloads a suitable Python automatically, so a system Python is not required.
 
 ```bash
 # From the repo root: generate the BMAD skills for your AI tool
