@@ -61,3 +61,5 @@ session-handoff
 
 # pnpm
 .pnpm-store
+# BMAD personal config
+_bmad/**/*.user.toml
